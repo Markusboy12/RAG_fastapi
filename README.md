@@ -3,7 +3,7 @@
 Мультимодальный помощник: анализ рентгеновских снимков (vision) + RAG-чат по
 клиническим протоколам с цитированием, PII-редактированием и стримингом ответов.
 
-**Стек (по ТЗ):**
+**Стек:**
 - LLM (vision+text): **Ollama Cloud** (Gemma 4 31B) → fallback на **Gemini Flash**
 - Embeddings: **Voyage AI** (`voyage-3`, 200M бесплатных токенов)
 - Vector DB: **Supabase (pgvector)**, гибридный поиск из коробки
