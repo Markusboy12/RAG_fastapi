@@ -1,7 +1,7 @@
 [project]
 name = "fastapi-rag-agent"
 version = "0.1.0"
-description = "RAG-агент по документации FastAPI с архитектурой Simple RAG + HyDE"
+description = "RAG agent for FastAPI documentation with Simple RAG + HyDE architecture"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

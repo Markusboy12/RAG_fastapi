@@ -1,5 +1,5 @@
 """
-Модуль для загрузки и индексации документации FastAPI
+Module for loading and indexing FastAPI documentation
 """
 import asyncio
 from typing import Optional
@@ -15,7 +15,7 @@ from backend.config import settings
 
 
 class DocumentationLoader:
-    """Загрузчик документации FastAPI"""
+    """FastAPI documentation loader"""
     
     def __init__(self):
         self.embed_model = VoyageAIEmbedding(
@@ -23,23 +23,23 @@ class DocumentationLoader:
             api_key=settings.voyage_api_key
         )
         
-        # Настройка LlamaIndex
+        # Configure LlamaIndex
         LlamaSettings.embed_model = self.embed_model
         
-        # Инициализация Qdrant клиента
+        # Initialize Qdrant client
         self.qdrant_client = QdrantClient(
             url=settings.qdrant_url,
             api_key=settings.qdrant_api_key
         )
         
-        # Создание векторного хранилища
+        # Create vector store
         self.vector_store = QdrantVectorStore(
             client=self.qdrant_client,
             collection_name=settings.qdrant_collection_name
         )
         
     async def create_collection(self) -> None:
-        """Создание коллекции в Qdrant если не существует"""
+        """Create collection in Qdrant if it doesn't exist"""
         collections = self.qdrant_client.get_collections().collections
         collection_exists = any(
             c.name == settings.qdrant_collection_name 
@@ -58,22 +58,22 @@ class DocumentationLoader:
                     "ef_construct": 100
                 }
             )
-            print(f"Коллекция {settings.qdrant_collection_name} создана")
+            print(f"Collection {settings.qdrant_collection_name} created")
         else:
-            print(f"Коллекция {settings.qdrant_collection_name} уже существует")
+            print(f"Collection {settings.qdrant_collection_name} already exists")
     
     async def load_from_firecrawl(self, urls: list[str]) -> list[Document]:
         """
-        Загрузка документации через Firecrawl API
+        Load documentation via Firecrawl API
         
         Args:
-            urls: Список URL для парсинга
+            urls: List of URLs to parse
             
         Returns:
-            Список документов
+            List of documents
         """
         if not settings.firecrawl_api_key:
-            raise ValueError("FIRECRAWL_API_KEY не настроен")
+            raise ValueError("FIRECRAWL_API_KEY not configured")
         
         from firecrawl import FirecrawlApp
         
@@ -82,7 +82,7 @@ class DocumentationLoader:
         
         for url in urls:
             try:
-                # Scraping страницы
+                # Scrape page
                 result = app.scrape_url(url=url, params={'formats': ['markdown']})
                 
                 if result and 'markdown' in result:
@@ -94,21 +94,21 @@ class DocumentationLoader:
                         }
                     )
                     documents.append(doc)
-                    print(f"Загружено: {url}")
+                    print(f"Loaded: {url}")
                     
             except Exception as e:
-                print(f"Ошибка загрузки {url}: {e}")
+                print(f"Error loading {url}: {e}")
         
         return documents
     
     async def load_docs_fastapi(self) -> list[Document]:
         """
-        Загрузка документации с docs.fastapi.dev
+        Load documentation from docs.fastapi.dev
         
         Returns:
-            Список документов
+            List of documents
         """
-        # Основные разделы документации FastAPI
+        # Main sections of FastAPI documentation
         urls = [
             "https://fastapi.tiangolo.com/tutorial/",
             "https://fastapi.tiangolo.com/tutorial/security/",
@@ -120,7 +120,7 @@ class DocumentationLoader:
         if settings.firecrawl_api_key:
             return await self.load_from_firecrawl(urls)
         else:
-            print("Firecrawl API ключ не настроен. Используйте ручную загрузку.")
+            print("Firecrawl API key not configured. Use manual loading.")
             return []
     
     async def index_documents(
@@ -129,17 +129,17 @@ class DocumentationLoader:
         use_code_splitter: bool = True
     ) -> VectorStoreIndex:
         """
-        Индексация документов
+        Index documents
         
         Args:
-            documents: Список документов для индексации
-            use_code_splitter: Использовать CodeSplitter для кода
+            documents: List of documents to index
+            use_code_splitter: Use CodeSplitter for code
             
         Returns:
-            Векторный индекс
+            Vector index
         """
         if use_code_splitter:
-            # CodeSplitter оптимален для кода Python/FastAPI
+            # CodeSplitter is optimal for Python/FastAPI code
             node_parser = CodeSplitter(
                 language="python",
                 chunk_size=settings.chunk_size,
@@ -154,38 +154,38 @@ class DocumentationLoader:
         
         nodes = node_parser.get_nodes_from_documents(documents)
         
-        # Создание индекса с Qdrant
+        # Create index with Qdrant
         index = VectorStoreIndex(
             nodes=nodes,
             vector_store=self.vector_store,
             embed_model=self.embed_model
         )
         
-        print(f"Проиндексировано {len(nodes)} чанков")
+        print(f"Indexed {len(nodes)} chunks")
         return index
     
     async def setup_and_index(self) -> VectorStoreIndex:
         """
-        Полная настройка: создание коллекции + загрузка + индексация
+        Full setup: create collection + load + index
         
         Returns:
-            Векторный индекс
+            Vector index
         """
         await self.create_collection()
         documents = await self.load_docs_fastapi()
         
         if not documents:
-            raise ValueError("Не удалось загрузить документы")
+            raise ValueError("Failed to load documents")
         
         index = await self.index_documents(documents)
         return index
 
 
 async def main():
-    """Точка входа для индексации документации"""
+    """Entry point for documentation indexing"""
     loader = DocumentationLoader()
     index = await loader.setup_and_index()
-    print("Индексация завершена успешно!")
+    print("Indexing completed successfully!")
 
 
 if __name__ == "__main__":

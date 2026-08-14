@@ -1,5 +1,5 @@
 """
-RAG Pipeline с HyDE (Hypothetical Document Embeddings)
+RAG Pipeline with HyDE (Hypothetical Document Embeddings)
 """
 import asyncio
 from typing import Optional, AsyncGenerator
@@ -22,8 +22,8 @@ from backend.config import settings
 
 class HyDETransform:
     """
-    HyDE (Hypothetical Document Embeddings) трансформация запроса.
-    Генерирует гипотетический ответ/код для улучшения поиска.
+    HyDE (Hypothetical Document Embeddings) query transformation.
+    Generates hypothetical answer/code for improved search.
     """
     
     def __init__(self):
@@ -34,21 +34,21 @@ class HyDETransform:
     
     async def transform(self, query: str) -> str:
         """
-        Генерация гипотетического документа/кода по запросу
+        Generate hypothetical document/code from query
         
         Args:
-            query: Исходный запрос пользователя
+            query: Original user query
             
         Returns:
-            Гипотетический документ/код
+            Hypothetical document/code
         """
-        prompt = f"""Ты эксперт по FastAPI. Сгенерируй гипотетический пример кода или документации, 
-который мог бы отвечать на следующий вопрос. Не отвечай на вопрос напрямую, 
-просто создай реалистичный фрагмент кода или документации, который содержал бы релевантную информацию.
+        prompt = f"""You are a FastAPI expert. Generate a hypothetical code example or documentation 
+that could answer the following question. Do not answer the question directly, 
+just create a realistic code snippet or documentation that would contain relevant information.
 
-Вопрос: {query}
+Question: {query}
 
-Гипотетический код/документация FastAPI:"""
+Hypothetical FastAPI code/documentation:"""
 
         response = await self.llm.acomplete(prompt)
         return response.text.strip()
@@ -56,29 +56,29 @@ class HyDETransform:
 
 class RAGPipeline:
     """
-    RAG пайплайн с поддержкой HyDE, памяти и streaming
+    RAG pipeline with HyDE, memory, and streaming support
     """
     
     def __init__(self):
-        # Инициализация LLM
+        # Initialize LLM
         self.llm = Groq(
             model=settings.groq_model,
             api_key=settings.groq_api_key,
             streaming=True
         )
         
-        # Инициализация эмбеддингов
+        # Initialize embeddings
         self.embed_model = VoyageAIEmbedding(
             model_name=settings.voyage_model,
             api_key=settings.voyage_api_key
         )
         
-        # Настройка LlamaIndex
+        # Configure LlamaIndex
         LlamaSettings.llm = self.llm
         LlamaSettings.embed_model = self.embed_model
         LlamaSettings.chunk_size = settings.chunk_size
         
-        # Инициализация Qdrant
+        # Initialize Qdrant
         self.qdrant_client = QdrantClient(
             url=settings.qdrant_url,
             api_key=settings.qdrant_api_key
@@ -89,32 +89,32 @@ class RAGPipeline:
             collection_name=settings.qdrant_collection_name
         )
         
-        # HyDE трансформер
+        # HyDE transformer
         self.hyde = HyDETransform()
         
-        # Индекс (будет установлен при загрузке)
+        # Index (will be set during load)
         self.index: Optional[VectorStoreIndex] = None
         
-        # Redis память
+        # Redis memory
         self.redis_memory: Optional[RedisChatMemoryBuffer] = None
     
     async def initialize(self) -> None:
-        """Инициализация индекса и памяти"""
-        # Загрузка существующего индекса из Qdrant
+        """Initialize index and memory"""
+        # Load existing index from Qdrant
         self.index = VectorStoreIndex.from_vector_store(
             vector_store=self.vector_store,
             embed_model=self.embed_model
         )
         
-        # Инициализация Redis памяти
+        # Initialize Redis memory
         self.redis_memory = RedisChatMemoryBuffer(
             redis_url=settings.redis_url,
             key_prefix=settings.redis_chat_key_prefix,
-            max_tokens=settings.memory_window * 512  # Примерный размер токенов
+            max_tokens=settings.memory_window * 512  # Approximate token size
         )
     
     def _create_retriever(self, query: str):
-        """Создание retriever с hybrid search"""
+        """Create retriever with hybrid search"""
         return VectorIndexRetriever(
             index=self.index,
             similarity_top_k=settings.top_k_chunks,
@@ -122,15 +122,15 @@ class RAGPipeline:
         )
     
     async def _apply_hyde(self, query: str) -> str:
-        """Применение HyDE трансформации"""
+        """Apply HyDE transformation"""
         try:
             hypothetical_doc = await self.hyde.transform(query)
-            # Комбинируем исходный запрос с гипотетическим документом
-            enriched_query = f"{query}\n\nКонтекст: {hypothetical_doc}"
+            # Combine original query with hypothetical document
+            enriched_query = f"{query}\n\nContext: {hypothetical_doc}"
             return enriched_query
         except Exception as e:
-            print(f"HyDE ошибка: {e}")
-            return query  # Fallback к исходному запросу
+            print(f"HyDE error: {e}")
+            return query  # Fallback to original query
     
     async def chat_stream(
         self, 
@@ -138,51 +138,51 @@ class RAGPipeline:
         session_id: str
     ) -> AsyncGenerator[str, None]:
         """
-        Потоковый ответ с использованием RAG + HyDE + Memory
+        Streaming response using RAG + HyDE + Memory
         
         Args:
-            query: Запрос пользователя
-            session_id: ID сессии для памяти
+            query: User query
+            session_id: Session ID for memory
             
         Yields:
-            Токены ответа
+            Response tokens
         """
         if not self.index:
             await self.initialize()
         
-        # Применение HyDE
+        # Apply HyDE
         enriched_query = await self._apply_hyde(query)
         
-        # Получение истории из Redis
+        # Get history from Redis
         chat_history = []
         if self.redis_memory:
             try:
                 chat_history = await self.redis_memory.aget(session_id=session_id)
             except Exception as e:
-                print(f"Redis ошибка: {e}")
+                print(f"Redis error: {e}")
         
-        # Создание retriever
+        # Create retriever
         retriever = self._create_retriever(enriched_query)
         
-        # Retrieval документов
+        # Retrieve documents
         nodes = await retriever.aretrieve(enriched_query)
         
-        # Пост-процессинг (фильтрация по relevance)
+        # Post-processing (filter by relevance)
         if nodes:
             postprocessor = SimilarityPostprocessor(
-                similarity_cutoff=0.5  # Минимальный порог релевантности
+                similarity_cutoff=0.5  # Minimum relevance threshold
             )
             filtered_nodes = postprocessor.postprocess_nodes(nodes)
         else:
             filtered_nodes = []
         
-        # Формирование контекста
+        # Build context
         context_text = "\n\n".join([node.get_content() for node in filtered_nodes])
         
-        # Сборка промпта с историей и контекстом
-        system_prompt = """Ты опытный помощник по FastAPI. Отвечай точно и по делу, 
-приводя примеры кода где это уместно. Используй предоставленный контекст из документации.
-Если контекст не содержит нужной информации, скажи об этом честно."""
+        # Assemble prompt with history and context
+        system_prompt = """You are an experienced FastAPI assistant. Answer accurately and concisely, 
+providing code examples where appropriate. Use the provided documentation context.
+If the context doesn't contain the needed information, say so honestly."""
 
         history_text = ""
         if chat_history:
@@ -193,23 +193,23 @@ class RAGPipeline:
         
         full_prompt = f"""{system_prompt}
 
-История диалога:
+Dialogue history:
 {history_text}
 
-Контекст из документации:
+Documentation context:
 {context_text}
 
-Вопрос пользователя: {query}
+User question: {query}
 
-Ответ:"""
+Answer:"""
         
-        # Streaming ответ от LLM
+        # Streaming response from LLM
         response = await self.llm.astream_complete(full_prompt)
         
         async for token in response:
             yield token.delta or ""
         
-        # Сохранение в историю
+        # Save to history
         if self.redis_memory:
             try:
                 await self.redis_memory.aput(
@@ -217,20 +217,20 @@ class RAGPipeline:
                     role="user",
                     content=query
                 )
-                # Полный ответ будет сохранён после завершения стрима
+                # Full response will be saved after stream completes
             except Exception as e:
-                print(f"Redis save ошибка: {e}")
+                print(f"Redis save error: {e}")
     
     async def chat_sync(self, query: str, session_id: str) -> str:
         """
-        Синхронный ответ (fallback)
+        Synchronous response (fallback)
         
         Args:
-            query: Запрос пользователя
-            session_id: ID сессии
+            query: User query
+            session_id: Session ID
             
         Returns:
-            Полный ответ
+            Full response
         """
         full_response = ""
         async for token in self.chat_stream(query, session_id):
@@ -243,7 +243,7 @@ class RAGPipeline:
         role: str, 
         content: str
     ) -> None:
-        """Сохранение сообщения в Redis"""
+        """Save message to Redis"""
         if self.redis_memory:
             try:
                 await self.redis_memory.aput(
@@ -252,7 +252,7 @@ class RAGPipeline:
                     content=content
                 )
             except Exception as e:
-                print(f"Redis save ошибка: {e}")
+                print(f"Redis save error: {e}")
 
 
 # Singleton instance
@@ -260,7 +260,7 @@ _pipeline: Optional[RAGPipeline] = None
 
 
 async def get_pipeline() -> RAGPipeline:
-    """Получение singleton экземпляра пайплайна"""
+    """Get singleton pipeline instance"""
     global _pipeline
     if _pipeline is None:
         _pipeline = RAGPipeline()

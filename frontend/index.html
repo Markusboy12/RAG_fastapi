@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastAPI RAG Agent - Чат по документации</title>
+    <title>FastAPI RAG Agent - Documentation Chat</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <!-- Highlight.js для подсветки кода -->
+    <!-- Highlight.js for code highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
@@ -14,17 +14,17 @@
     <div class="container">
         <header>
             <h1>🚀 FastAPI RAG Agent</h1>
-            <p class="subtitle">Интеллектуальный помощник по документации FastAPI</p>
+            <p class="subtitle">Intelligent assistant for FastAPI documentation</p>
         </header>
 
         <div id="chat-container">
             <div id="messages" class="messages">
-                <!-- Сообщения будут добавляться сюда -->
+                <!-- Messages will be added here -->
                 <div class="message assistant">
                     <div class="message-content">
-                        Привет! Я RAG-агент, обученный на документации FastAPI. 
-                        Спроси меня о чём угодно: JWT авторизация, dependency injection, 
-                        WebSocket, тестирование и многое другое!
+                        Hello! I'm a RAG agent trained on FastAPI documentation. 
+                        Ask me anything: JWT authentication, dependency injection, 
+                        WebSocket, testing, and more!
                     </div>
                 </div>
             </div>
@@ -38,7 +38,7 @@
             <input 
                 type="text" 
                 id="message-input" 
-                placeholder="Спросите о FastAPI... (например: как сделать JWT авторизацию?)"
+                placeholder="Ask about FastAPI... (e.g., how to implement JWT authentication?)"
                 autocomplete="off"
                 required
             >

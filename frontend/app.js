@@ -1,6 +1,6 @@
 /**
- * Frontend JavaScript для FastAPI RAG Agent
- * Поддержка SSE streaming, syntax highlighting, история сессий
+ * Frontend JavaScript for FastAPI RAG Agent
+ * SSE streaming support, syntax highlighting, session history
  */
 
 class ChatApp {
@@ -9,7 +9,7 @@ class ChatApp {
         this.eventSource = null;
         this.isStreaming = false;
         
-        // DOM элементы
+        // DOM elements
         this.messagesContainer = document.getElementById('messages');
         this.messageInput = document.getElementById('message-input');
         this.chatForm = document.getElementById('chat-form');
@@ -20,13 +20,13 @@ class ChatApp {
     }
     
     init() {
-        // Обработчик формы
+        // Form handler
         this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
         
-        // Автофокус на поле ввода
+        // Auto-focus on input field
         this.messageInput.focus();
         
-        // Восстановление session_id из localStorage
+        // Restore session_id from localStorage
         if (!this.sessionId) {
             this.sessionId = this.generateSessionId();
             this.saveSessionId();
@@ -53,11 +53,11 @@ class ChatApp {
         const message = this.messageInput.value.trim();
         if (!message || this.isStreaming) return;
         
-        // Добавление сообщения пользователя
+        // Add user message
         this.addMessage(message, 'user');
         this.messageInput.value = '';
         
-        // Отправка запроса с SSE streaming
+        // Send request with SSE streaming
         await this.sendMessage(message);
     }
     
@@ -69,7 +69,7 @@ class ChatApp {
         contentDiv.className = 'message-content';
         
         if (role === 'assistant') {
-            // Для ассистента используем parseMarkdown для подсветки кода
+            // For assistant, use parseMarkdown for code highlighting
             contentDiv.innerHTML = this.parseMarkdown(content);
             hljs.highlightAll();
         } else {
@@ -79,7 +79,7 @@ class ChatApp {
         messageDiv.appendChild(contentDiv);
         this.messagesContainer.appendChild(messageDiv);
         
-        // Прокрутка вниз
+        // Scroll to bottom
         this.scrollToBottom();
         
         return contentDiv;
@@ -95,20 +95,20 @@ class ChatApp {
     }
     
     parseMarkdown(text) {
-        // Базовый парсинг markdown
+        // Basic markdown parsing
         let html = text
-            // Блоки кода
+            // Code blocks
             .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
                 const language = lang || 'plaintext';
                 return `<pre><code class="language-${language}">${this.escapeHtml(code.trim())}</code></pre>`;
             })
-            // Инлайн код
+            // Inline code
             .replace(/`([^`]+)`/g, '<code>$1</code>')
-            // Жирный текст
+            // Bold text
             .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-            // Курсив
+            // Italic
             .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-            // Переносы строк
+            // Line breaks
             .replace(/\n/g, '<br>');
         
         return html;
@@ -146,7 +146,7 @@ class ChatApp {
     }
     
     sendMessage(message) {
-        // Используем streaming fetch запрос
+        // Use streaming fetch request
         return this.sendStreamRequest(message);
     }
     
@@ -172,7 +172,7 @@ class ChatApp {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            // Чтение потока
+            // Read stream
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             
@@ -183,7 +183,7 @@ class ChatApp {
                 
                 const chunk = decoder.decode(value);
                 
-                // Парсинг SSE формата: data: {...}\n\n
+                // Parse SSE format: data: {...}\n\n
                 const lines = chunk.split('\n');
                 
                 for (const line of lines) {
@@ -215,7 +215,7 @@ class ChatApp {
             
         } catch (error) {
             console.error('Stream error:', error);
-            this.updateLastMessage(`Ошибка: ${error.message}`);
+            this.updateLastMessage(`Error: ${error.message}`);
         } finally {
             this.setLoading(false);
         }
@@ -247,14 +247,14 @@ class ChatApp {
             
         } catch (error) {
             console.error('Fallback error:', error);
-            this.updateLastMessage(`Ошибка: ${error.message}`);
+            this.updateLastMessage(`Error: ${error.message}`);
         } finally {
             this.setLoading(false);
         }
     }
 }
 
-// Инициализация приложения
+// Initialize application
 document.addEventListener('DOMContentLoaded', () => {
     window.chatApp = new ChatApp();
 });

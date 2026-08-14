@@ -1,4 +1,4 @@
-/* Стили для FastAPI RAG Agent Chat UI */
+/* Styles for FastAPI RAG Agent Chat UI */
 
 :root {
     --primary-color: #009688;
@@ -118,7 +118,7 @@ header h1 {
     border-bottom-left-radius: 4px;
 }
 
-/* Подсветка кода в сообщениях */
+/* Code highlighting in messages */
 .message-content pre {
     background: #1e1e1e;
     padding: 12px;
@@ -172,7 +172,7 @@ header h1 {
     }
 }
 
-/* Форма ввода */
+/* Input form */
 .chat-form {
     display: flex;
     gap: 10px;
@@ -249,7 +249,7 @@ footer {
     background: var(--primary-dark);
 }
 
-/* Адаптивность */
+/* Responsive */
 @media (max-width: 768px) {
     body {
         padding: 10px;

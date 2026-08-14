@@ -1,11 +1,11 @@
 """
-Конфигурация приложения FastAPI RAG Agent
+Configuration for FastAPI RAG Agent Application
 """
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Настройки приложения"""
+    """Application settings"""
     
     model_config = SettingsConfigDict(
         env_file=".env",

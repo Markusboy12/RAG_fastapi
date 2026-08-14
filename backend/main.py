@@ -1,5 +1,5 @@
 """
-FastAPI Backend с SSE streaming для RAG-агента
+FastAPI Backend with SSE streaming for RAG Agent
 """
 import json
 import uuid
@@ -14,7 +14,7 @@ from backend.pipeline import get_pipeline, RAGPipeline
 from backend.config import settings
 
 
-# Модели данных
+# Data models
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
@@ -25,10 +25,10 @@ class ChatResponse(BaseModel):
     session_id: str
 
 
-# Создание приложения
+# Create application
 app = FastAPI(
     title="FastAPI RAG Agent",
-    description="RAG-агент по документации FastAPI с HyDE и streaming",
+    description="RAG agent for FastAPI documentation with HyDE and streaming",
     version="0.1.0"
 )
 
@@ -41,20 +41,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Статические файлы (фронтенд)
+# Static files (frontend)
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Инициализация пайплайна при старте"""
+    """Initialize pipeline on startup"""
     pipeline = await get_pipeline()
-    print("RAG Pipeline инициализирован")
+    print("RAG Pipeline initialized")
 
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
-    """Отдача фронтенда"""
+    """Serve frontend"""
     with open("frontend/index.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
@@ -71,9 +71,9 @@ async def generate_sse_stream(
     session_id: str
 ):
     """
-    Генератор SSE событий для потоковой передачи
+    SSE event generator for streaming
     
-    Формат SSE:
+    SSE format:
     event: token
     data: {"token": "..."}
     
@@ -85,18 +85,18 @@ async def generate_sse_stream(
     try:
         async for token in pipeline.chat_stream(query, session_id):
             full_response += token
-            # Форматирование SSE события
+            # Format SSE event
             sse_data = json.dumps({"token": token}, ensure_ascii=False)
             yield f"data: {sse_data}\n\n"
         
-        # Сохранение ответа в историю
+        # Save response to history
         await pipeline.save_message(session_id, "assistant", full_response)
         
-        # Событие завершения
+        # Completion event
         yield f"data: {json.dumps({'done': True, 'session_id': session_id})}\n\n"
         
     except Exception as e:
-        # Ошибка в стриме
+        # Stream error
         error_data = json.dumps({"error": str(e)}, ensure_ascii=False)
         yield f"data: {error_data}\n\n"
 
@@ -104,11 +104,11 @@ async def generate_sse_stream(
 @app.post("/chat")
 async def chat_streaming(request: ChatRequest):
     """
-    Чат с SSE streaming
+    Chat with SSE streaming
     
-    Возвращает StreamingResponse с токенами в реальном времени
+    Returns StreamingResponse with real-time tokens
     """
-    # Генерация session_id если не предоставлен
+    # Generate session_id if not provided
     session_id = request.session_id or str(uuid.uuid4())
     
     try:
@@ -120,7 +120,7 @@ async def chat_streaming(request: ChatRequest):
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "X-Accel-Buffering": "no"  # Отключение буферизации nginx
+                "X-Accel-Buffering": "no"  # Disable nginx buffering
             }
         )
         
@@ -131,9 +131,9 @@ async def chat_streaming(request: ChatRequest):
 @app.post("/chat/sync", response_model=ChatResponse)
 async def chat_sync(request: ChatRequest):
     """
-    Синхронный чат (fallback для клиентов без SSE)
+    Synchronous chat (fallback for clients without SSE)
     
-    Возвращает полный ответ JSON
+    Returns full JSON response
     """
     session_id = request.session_id or str(uuid.uuid4())
     
@@ -141,7 +141,7 @@ async def chat_sync(request: ChatRequest):
         pipeline = await get_pipeline()
         response = await pipeline.chat_sync(request.message, session_id)
         
-        # Сохранение ответа
+        # Save response
         await pipeline.save_message(session_id, "assistant", response)
         
         return ChatResponse(response=response, session_id=session_id)
@@ -152,7 +152,7 @@ async def chat_sync(request: ChatRequest):
 
 @app.get("/api/sessions/{session_id}/history")
 async def get_history(session_id: str):
-    """Получение истории сессии"""
+    """Get session history"""
     try:
         pipeline = await get_pipeline()
         
@@ -168,7 +168,7 @@ async def get_history(session_id: str):
 
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str):
-    """Удаление сессии"""
+    """Delete session"""
     try:
         pipeline = await get_pipeline()
         

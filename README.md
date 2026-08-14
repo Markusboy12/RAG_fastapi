@@ -1,79 +1,79 @@
 # FastAPI RAG Agent with HyDE
 
-Интеллектуальный RAG-агент для работы с документацией FastAPI, использующий архитектуру **Simple RAG + HyDE** (Hypothetical Document Embeddings) для повышения точности поиска кода и примеров.
+Intelligent RAG agent for working with FastAPI documentation, using **Simple RAG + HyDE** (Hypothetical Document Embeddings) architecture to improve search accuracy for code and examples.
 
-## 🚀 Особенности
+## 🚀 Features
 
-- **HyDE (Hypothetical Document Embeddings)**: Генерация гипотетического кода перед поиском для улучшения релевантности
-- **Hybrid Search**: Комбинация векторного и keyword поиска в Qdrant
-- **Streaming Responses**: Потоковая передача токенов через Server-Sent Events (SSE)
-- **Memory**: История диалога в Redis для контекстных ответов
-- **Code Highlighting**: Подсветка синтаксиса Python/FastAPI на фронтенде
-- **Fallback LLM**: Автоматическое переключение на Ollama при ошибках Groq
-- **Free Tier Ready**: Все сервисы работают на бесплатных тарифах
+- **HyDE (Hypothetical Document Embeddings)**: Generates hypothetical code before search to improve relevance
+- **Hybrid Search**: Combines vector and keyword search in Qdrant
+- **Streaming Responses**: Real-time token streaming via Server-Sent Events (SSE)
+- **Memory**: Dialogue history in Redis for contextual responses
+- **Code Highlighting**: Python/FastAPI syntax highlighting on the frontend
+- **Fallback LLM**: Automatic switch to Ollama when Groq errors occur
+- **Free Tier Ready**: All services work on free tiers
 
-## 🏗️ Архитектура
+## 🏗️ Architecture
 
 ```
 User Query → HyDE (Groq) → Voyage AI Embeddings → Qdrant Hybrid Search 
            → Grade → Redis Memory → Groq Streaming → SSE → Browser
 ```
 
-### Компоненты
+### Components
 
-| Компонент | Технология | Назначение |
-|-----------|------------|------------|
-| **LLM (Primary)** | Groq API (Qwen-2.5-Coder-32B) | Генерация HyDE запросов и ответов |
-| **LLM (Fallback)** | Ollama Cloud | Резервный LLM при ошибках Groq |
-| **Embeddings** | Voyage AI (voyage-code-3) | Векторизация кода и документации |
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **LLM (Primary)** | Groq API (Qwen-2.5-Coder-32B) | Generate HyDE queries and responses |
+| **LLM (Fallback)** | Ollama Cloud | Backup LLM for Groq errors |
+| **Embeddings** | Voyage AI (voyage-code-3) | Vectorize code and documentation |
 | **Vector DB** | Qdrant Cloud | Hybrid search (vector + keyword) |
-| **Memory** | Redis Cloud | История сообщений + кэш эмбеддингов |
-| **Parser** | Firecrawl API | Извлечение docs.fastapi.dev → Markdown |
+| **Memory** | Redis Cloud | Message history + embedding cache |
+| **Parser** | Firecrawl API | Extract docs.fastapi.dev → Markdown |
 | **Backend** | FastAPI 0.115+ | REST API + SSE streaming |
 | **Frontend** | Vanilla HTML/JS | Chat UI + highlight.js |
-| **RAG Orchestrator** | LlamaIndex 0.12+ | Чанкинг, HyDE, retrieval, memory |
+| **RAG Orchestrator** | LlamaIndex 0.12+ | Chunking, HyDE, retrieval, memory |
 
-## 📋 Требования
+## 📋 Requirements
 
 - Python 3.11+
-- uv или poetry (рекомендуется uv)
-- Docker (опционально, для локального Redis/Qdrant)
+- uv or poetry (uv recommended)
+- Docker (optional, for local Redis/Qdrant)
 
-## 🔑 Необходимые API ключи
+## 🔑 Required API Keys
 
-Получите бесплатные ключи для следующих сервисов:
+Get free keys for the following services:
 
-| Сервис | URL | Лимиты Free Tier |
-|--------|-----|------------------|
+| Service | URL | Free Tier Limits |
+|---------|-----|------------------|
 | **Groq** | https://console.groq.com | ~30 req/min |
-| **Voyage AI** | https://dashboard.voyageai.com | 200M токенов/мес |
-| **Qdrant** | https://cloud.qdrant.io | 1 ГБ хранилища |
-| **Redis** | https://redis.com/try-free | 30 МБ |
-| **Firecrawl** | https://www.firecrawl.dev | 500 страниц/мес |
+| **Voyage AI** | https://dashboard.voyageai.com | 200M tokens/month |
+| **Qdrant** | https://cloud.qdrant.io | 1 GB storage |
+| **Redis** | https://redis.com/try-free | 30 MB |
+| **Firecrawl** | https://www.firecrawl.dev | 500 pages/month |
 
-## ⚙️ Установка
+## ⚙️ Installation
 
-### 1. Клонирование репозитория
+### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd fastapi-rag-agent
 ```
 
-### 2. Настройка переменных окружения
+### 2. Configure environment variables
 
-Скопируйте шаблон `.env.example` в `.env` и заполните ключами:
+Copy `.env.example` to `.env` and fill in your keys:
 
 ```bash
 cp .env.example .env
 ```
 
-Отредактируйте `.env`:
+Edit `.env`:
 
 ```env
 # LLM
 GROQ_API_KEY=gsk_...
-OLLAMA_BASE_URL=http://localhost:11434  # опционально
+OLLAMA_BASE_URL=http://localhost:11434  # optional
 
 # Embeddings
 VOYAGE_API_KEY=...
@@ -87,7 +87,7 @@ QDRANT_COLLECTION_NAME=fastapi_docs
 REDIS_URL=rediss://default:password@host:6379
 
 # Parser
-FIRECRAWL_API_KEY=fc_...  # опционально, можно использовать прямой парсинг
+FIRECRAWL_API_KEY=fc_...  # optional, can use direct parsing
 
 # App Settings
 LOG_LEVEL=INFO
@@ -97,188 +97,188 @@ CHUNK_OVERLAP=50
 TOP_K_RESULTS=5
 ```
 
-### 3. Установка зависимостей
+### 3. Install dependencies
 
-Рекомендуется использовать **uv** для быстрой установки:
+It is recommended to use **uv** for fast installation:
 
 ```bash
-# Установка uv (если не установлен)
+# Install uv (if not installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Синхронизация зависимостей
+# Sync dependencies
 uv sync
 ```
 
-Или через pip:
+Or via pip:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 🚀 Запуск
+## 🚀 Running
 
-### Шаг 1: Индексация документации
+### Step 1: Index documentation
 
-Загрузите документацию FastAPI в векторную базу данных:
+Load FastAPI documentation into the vector database:
 
 ```bash
 uv run python -m backend.indexer
 ```
 
-Процесс:
-1. Firecrawl извлекает страницы с `docs.fastapi.dev`
-2. LlamaIndex разбивает на чанки (512 токенов, overlap 50)
-3. Voyage AI генерирует эмбеддинги
-4. Чанки сохраняются в Qdrant с метаданными
+Process:
+1. Firecrawl extracts pages from `docs.fastapi.dev`
+2. LlamaIndex splits into chunks (512 tokens, overlap 50)
+3. Voyage AI generates embeddings
+4. Chunks are saved to Qdrant with metadata
 
-⏱️ Время выполнения: ~5-10 минут
+⏱️ Execution time: ~5-10 minutes
 
-### Шаг 2: Запуск сервера
+### Step 2: Start the server
 
 ```bash
 uv run uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Или используйте скрипт:
+Or use the script:
 
 ```bash
 ./scripts/run.sh
 ```
 
-### Шаг 3: Открытие интерфейса
+### Step 3: Open the interface
 
-Перейдите в браузере: **http://localhost:8000**
+Open in browser: **http://localhost:8000**
 
 ## 📡 API Endpoints
 
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| `GET` | `/` | Статический фронтенд (Chat UI) |
-| `POST` | `/chat` | SSE streaming ответ |
-| `POST` | `/chat/sync` | JSON ответ (fallback) |
-| `GET` | `/health` | Проверка работоспособности |
-| `POST` | `/index/rebuild` | Пересоздать индекс документов |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Static frontend (Chat UI) |
+| `POST` | `/chat` | SSE streaming response |
+| `POST` | `/chat/sync` | JSON response (fallback) |
+| `GET` | `/health` | Health check |
+| `POST` | `/index/rebuild` | Rebuild document index |
 
-### Пример запроса через curl
+### Example curl request
 
 ```bash
-# Streaming запрос
+# Streaming request
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"query": "как сделать JWT авторизацию в FastAPI?"}'
+  -d '{"query": "how to implement JWT authentication in FastAPI?"}'
 ```
 
-## 💬 Примеры запросов
+## 💬 Example queries
 
-Попробуйте задать агенту следующие вопросы:
+Try asking the agent these questions:
 
-- *"Как создать endpoint с OAuth2PasswordBearer?"*
-- *"Покажи пример зависимости для проверки JWT токена"*
-- *"Как валидировать request body с помощью Pydantic?"*
-- *"Объясни разницу между Depends и Security"*
-- *"Как настроить CORS middleware?"*
+- *"How to create an endpoint with OAuth2PasswordBearer?"*
+- *"Show me an example dependency for JWT token validation"*
+- *"How to validate request body using Pydantic?"*
+- *"Explain the difference between Depends and Security"*
+- *"How to configure CORS middleware?"*
 
-## 🧪 Тестирование
+## 🧪 Testing
 
-Запуск тестов (если добавлены):
+Run tests (if added):
 
 ```bash
 uv run pytest tests/ -v
 ```
 
-## 🐳 Docker (опционально)
+## 🐳 Docker (optional)
 
-Для локального запуска Redis и Qdrant:
+For local Redis and Qdrant:
 
 ```bash
 docker-compose up -d
 ```
 
-Обновите `.env` для использования локальных сервисов:
+Update `.env` to use local services:
 
 ```env
 REDIS_URL=redis://localhost:6379
 QDRANT_URL=http://localhost:6333
 ```
 
-## 📁 Структура проекта
+## 📁 Project structure
 
 ```
 fastapi-rag-agent/
 ├── backend/
 │   ├── __init__.py
-│   ├── config.py          # Настройки и env variables
-│   ├── indexer.py         # Загрузка и индексация документов
-│   ├── pipeline.py        # RAG пайплайн (HyDE, retrieval, memory)
-│   └── main.py            # FastAPI сервер + endpoints
+│   ├── config.py          # Settings and env variables
+│   ├── indexer.py         # Document loading and indexing
+│   ├── pipeline.py        # RAG pipeline (HyDE, retrieval, memory)
+│   └── main.py            # FastAPI server + endpoints
 ├── frontend/
 │   ├── index.html         # Chat UI
-│   ├── styles.css         # Стили
-│   └── app.js             # SSE клиент + highlight.js
+│   ├── styles.css         # Styles
+│   └── app.js             # SSE client + highlight.js
 ├── scripts/
-│   └── run.sh             # Скрипт запуска
-├── tests/                 # Тесты (опционально)
-├── pyproject.toml         # Зависимости
-├── .env.example           # Шаблон переменных окружения
+│   └── run.sh             # Launch script
+├── tests/                 # Tests (optional)
+├── pyproject.toml         # Dependencies
+├── .env.example           # Environment variable template
 ├── .gitignore
-└── README.md              # Этот файл
+└── README.md              # This file
 ```
 
-## 🔧 Настройка параметров
+## 🔧 Parameter configuration
 
-В `.env` можно настроить:
+In `.env` you can configure:
 
-| Параметр | По умолчанию | Описание |
-|----------|--------------|----------|
-| `CHUNK_SIZE` | 512 | Размер чанка в токенах |
-| `CHUNK_OVERLAP` | 50 | Перекрытие между чанками |
-| `TOP_K_RESULTS` | 5 | Количество результатов поиска |
-| `MAX_MEMORY_MESSAGES` | 5 | Сообщений истории в Redis |
-| `HYDE_MODEL` | qwen-2.5-coder-32b | Модель для HyDE |
-| `RESPONSE_MODEL` | qwen-2.5-coder-32b | Модель для генерации ответа |
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `CHUNK_SIZE` | 512 | Chunk size in tokens |
+| `CHUNK_OVERLAP` | 50 | Overlap between chunks |
+| `TOP_K_RESULTS` | 5 | Number of search results |
+| `MAX_MEMORY_MESSAGES` | 5 | History messages in Redis |
+| `HYDE_MODEL` | qwen-2.5-coder-32b | Model for HyDE |
+| `RESPONSE_MODEL` | qwen-2.5-coder-32b | Model for response generation |
 
 ## 🛠️ Troubleshooting
 
-### Ошибка подключения к Qdrant
-- Проверьте `QDRANT_URL` и `QDRANT_API_KEY`
-- Убедитесь, что коллекция создана (`indexer.py` создаёт автоматически)
+### Qdrant connection error
+- Check `QDRANT_URL` and `QDRANT_API_KEY`
+- Make sure the collection is created (`indexer.py` creates automatically)
 
-### Ошибка Groq API
-- Проверьте лимиты rate limiting (~30 req/min на free tier)
-- При частых ошибках включите fallback на Ollama
+### Groq API error
+- Check rate limiting limits (~30 req/min on free tier)
+- Enable fallback to Ollama for frequent errors
 
-### Медленная индексация
-- Уменьшите `CHUNK_SIZE` или параллелизуйте загрузку
-- Firecrawl free tier: 500 страниц/мес
+### Slow indexing
+- Reduce `CHUNK_SIZE` or parallelize loading
+- Firecrawl free tier: 500 pages/month
 
-### Пустые ответы
-- Проверьте, что индексация завершена успешно
-- Увеличьте `TOP_K_RESULTS` до 10
+### Empty responses
+- Check that indexing completed successfully
+- Increase `TOP_K_RESULTS` to 10
 
-## 📊 Мониторинг
+## 📊 Monitoring
 
-Логирование настроено через стандартный `logging` модуль Python.
+Logging is configured via Python's standard `logging` module.
 
-Уровень логирования: `LOG_LEVEL=INFO` (можно изменить на `DEBUG`)
+Log level: `LOG_LEVEL=INFO` (can be changed to `DEBUG`)
 
-Ключевые метрики для отслеживания:
-- Время ответа (time to first token)
-- Количество чанков в контексте
-- Score релевантности搜索结果
+Key metrics to track:
+- Response time (time to first token)
+- Number of chunks in context
+- Relevance score of search results
 
 ## 🤝 Contributing
 
-1. Fork репозиторий
-2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit изменения (`git commit -m 'Add amazing feature'`)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push (`git push origin feature/amazing-feature`)
-5. Откройте Pull Request
+5. Open a Pull Request
 
-## 📄 Лицензия
+## 📄 License
 
 MIT License
 
-## 🔗 Полезные ссылки
+## 🔗 Useful links
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com)
 - [LlamaIndex Docs](https://docs.llamaindex.ai)
@@ -289,4 +289,4 @@ MIT License
 
 ---
 
-**Сделано с ❤️ для сообщества FastAPI**
+**Made with ❤️ for the FastAPI community**
