@@ -1,0 +1,29 @@
+[project]
+name = "fastapi-rag-agent"
+version = "0.1.0"
+description = "RAG-агент по документации FastAPI с архитектурой Simple RAG + HyDE"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "llama-index>=0.12.0",
+    "llama-index-llms-groq>=0.3.0",
+    "llama-index-embeddings-voyageai>=0.3.0",
+    "llama-index-vector-stores-qdrant>=0.4.0",
+    "llama-index-memory-chat-redis>=0.3.0",
+    "llama-index-readers-web>=0.3.0",
+    "redis>=5.2.0",
+    "qdrant-client>=1.12.0",
+    "voyageai>=0.3.0",
+    "groq>=0.13.0",
+    "python-dotenv>=1.0.0",
+    "pydantic-settings>=2.7.0",
+    "aiohttp>=3.11.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.0",
+    "black>=24.10.0",
+]
