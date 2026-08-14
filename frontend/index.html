@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI RAG Agent - Чат по документации</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <!-- Highlight.js для подсветки кода -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 FastAPI RAG Agent</h1>
+            <p class="subtitle">Интеллектуальный помощник по документации FastAPI</p>
+        </header>
+
+        <div id="chat-container">
+            <div id="messages" class="messages">
+                <!-- Сообщения будут добавляться сюда -->
+                <div class="message assistant">
+                    <div class="message-content">
+                        Привет! Я RAG-агент, обученный на документации FastAPI. 
+                        Спроси меня о чём угодно: JWT авторизация, dependency injection, 
+                        WebSocket, тестирование и многое другое!
+                    </div>
+                </div>
+            </div>
+
+            <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <form id="chat-form" class="chat-form">
+            <input 
+                type="text" 
+                id="message-input" 
+                placeholder="Спросите о FastAPI... (например: как сделать JWT авторизацию?)"
+                autocomplete="off"
+                required
+            >
+            <button type="submit" id="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
+
+        <footer>
+            <p>Powered by LlamaIndex + Groq + Voyage AI + Qdrant</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
